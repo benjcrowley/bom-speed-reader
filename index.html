@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book of Mormon Speed Reader</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <main class="reader-container">
+        <div id="word-display" aria-live="polite">Ready</div>
+        
+        <div id="realtime-wpm">0 wpm</div>
+
+        <div class="controls">
+            <select id="chapter-select" aria-label="Select Chapter">
+                <option value="" disabled selected>Loading Library...</option>
+            </select>
+            
+            <div class="slider-wrapper">
+                <div class="slider-label">
+                    <label for="wpm-slider">Target Speed</label>
+                    <span id="target-wpm-display">400 WPM</span>
+                </div>
+                <input type="range" id="wpm-slider" min="200" max="1000" step="25" value="400">
+            </div>
+
+            <button id="action-btn">Start Reading</button>
+        </div>
+    </main>
+
+    <button id="theme-toggle" aria-label="Toggle Dark Mode">🌙</button>
+
+    <script src="script.js"></script>
+</body>
+</html>
