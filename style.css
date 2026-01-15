@@ -1,9 +1,10 @@
 /* --- Variables & Theming --- */
 :root {
-    --bg-color: #f8f5f2;      /* Warm paper white */
+    --bg-color: #f8f5f2;      /* Warm white */
     --text-color: #333333;
     --panel-bg: #ffffff;
-    --accent-color: #2c3e50;  /* Navy */
+    --accent-color: #2c3e50;  /* Navy Blue */
+    --rod-gradient: linear-gradient(to bottom, #bdc3c7, #2c3e50);
     --orp-color: #e74c3c;     /* Red focus letter */
     --shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
@@ -13,143 +14,109 @@ body.dark-mode {
     --text-color: #e0e0e0;
     --panel-bg: #1e1e1e;
     --accent-color: #64b5f6;  /* Light Blue */
+    --rod-gradient: linear-gradient(to bottom, #555, #222);
     --orp-color: #ff5252;     /* Bright Red */
     --shadow: 0 4px 20px rgba(0,0,0,0.4);
 }
 
-/* --- Base Styles --- */
+/* --- Base Layout --- */
 body {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    margin: 0; padding: 0; height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    background-color: var(--bg-color); color: var(--text-color);
     font-family: 'Merriweather', serif;
     transition: background-color 0.3s ease, color 0.3s ease;
-    overflow: hidden; /* Prevents scroll bounce on mobile */
+    overflow: hidden; 
 }
 
-/* --- Reader Display --- */
 .reader-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 600px;
-    padding: 20px;
+    display: flex; flex-direction: column; align-items: center;
+    width: 100%; max-width: 600px; padding: 20px; position: relative;
 }
 
+/* --- The Display Frame --- */
+.display-wrapper {
+    position: relative; width: 100%; height: 180px; 
+    display: flex; justify-content: center; align-items: center;
+    margin-bottom: 20px;
+    background-color: var(--panel-bg);
+    border: 1px solid rgba(0,0,0,0.1); border-radius: 12px;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.03);
+    transition: all 0.5s ease;
+}
+
+body.dark-mode .display-wrapper { border-color: #333; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+
+/* --- Reticle Lines --- */
+.reticle-top, .reticle-bottom {
+    position: absolute; width: 2px; height: 15px;
+    background-color: #333; left: 50%; transform: translateX(-50%);
+    opacity: 0.3; z-index: 10;
+}
+.reticle-top { top: 20px; }
+.reticle-bottom { bottom: 20px; }
+body.dark-mode .reticle-top, body.dark-mode .reticle-bottom { background-color: #fff; opacity: 0.2; }
+
+/* --- Ghost Words --- */
+.ghost-word {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    font-size: 35px; font-family: 'Merriweather', serif;
+    color: var(--text-color); opacity: 0.15; pointer-events: none;
+    white-space: nowrap; transition: opacity 0.2s ease; z-index: 0;
+}
+#ghost-left { right: 60%; text-align: right; mask-image: linear-gradient(to right, transparent, black); -webkit-mask-image: linear-gradient(to right, transparent, black); }
+#ghost-right { left: 60%; text-align: left; mask-image: linear-gradient(to left, transparent, black); -webkit-mask-image: linear-gradient(to left, transparent, black); }
+
+/* --- Main Word --- */
 #word-display {
-    font-size: 70px;
-    height: 100px; /* Fixed height prevents layout jumps */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%; font-size: 55px; font-weight: 400;
+    padding: 0 10px; cursor: pointer; user-select: none;
+    -webkit-user-select: none; line-height: 1.2; z-index: 5;
     text-align: center;
-    margin-bottom: 10px;
-    font-weight: 400;
+    display: none; /* Hidden by default */
 }
 
-.orp-letter {
-    color: var(--orp-color);
-    font-weight: 700;
+/* --- THE RSVP GRID (Corrected) --- */
+.rsvp-grid {
+    display: flex; justify-content: center; align-items: baseline;
+    width: 100%; box-sizing: border-box;
+}
+.rsvp-left { flex: 1; text-align: right; letter-spacing: 0; white-space: pre; }
+.rsvp-right { flex: 1; text-align: left; letter-spacing: 0; white-space: pre; }
+.orp-letter { color: var(--orp-color); font-weight: 700; }
+
+/* --- Pause & Ponder --- */
+#ponder-display {
+    display: block; /* Visible by default */
+    font-size: 18px; line-height: 1.6; text-align: center;
+    color: var(--text-color); padding: 15px;
+    font-family: 'Merriweather', serif; overflow-y: auto;
+    max-height: 100%; width: 100%; box-sizing: border-box; z-index: 20;
 }
 
-#realtime-wpm {
-    font-family: 'Roboto', sans-serif;
-    font-size: 14px;
-    opacity: 0.6;
-    margin-bottom: 30px;
-    height: 20px;
-}
+#current-ref { font-family: 'Roboto', sans-serif; font-size: 14px; color: #888; margin-bottom: 5px; height: 20px; font-weight: 500; text-transform: uppercase; letter-spacing: 1px; }
+#realtime-wpm { font-family: 'Roboto', sans-serif; font-size: 12px; opacity: 0.6; margin-bottom: 10px; height: 20px; }
 
-/* --- Controls Panel --- */
-.controls {
-    background-color: var(--panel-bg);
-    padding: 25px;
-    border-radius: 16px;
-    box-shadow: var(--shadow);
-    width: 100%;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    font-family: 'Roboto', sans-serif;
-}
+/* --- Rod & Controls --- */
+.rod-container { position: relative; width: 100%; height: 40px; margin-bottom: 20px; display: flex; align-items: center; transition: opacity 1s ease; }
+.iron-rod { width: 100%; height: 8px; background: var(--rod-gradient); border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); z-index: 1; }
+#progress-token { position: absolute; left: 0; top: 50%; transform: translate(-50%, -50%); font-size: 30px; transition: left 0.1s linear; z-index: 2; cursor: grab; }
 
-select {
-    padding: 12px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: var(--bg-color);
-    color: var(--text-color);
-}
+.controls { background-color: var(--panel-bg); padding: 25px; border-radius: 16px; box-shadow: var(--shadow); width: 100%; box-sizing: border-box; display: flex; flex-direction: column; gap: 15px; font-family: 'Roboto', sans-serif; transition: opacity 1s ease; }
+select { padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; background: var(--bg-color); color: var(--text-color); width: 100%; outline: none; }
+button#action-btn { padding: 15px; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; font-size: 18px; font-weight: 500; cursor: pointer; margin-top: 10px; }
+button#action-btn:active { transform: scale(0.98); }
 
-button#action-btn {
-    padding: 15px;
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 18px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: transform 0.1s;
-}
+.slider-wrapper { display: flex; flex-direction: column; gap: 8px; }
+.slider-label { display: flex; justify-content: space-between; font-size: 14px; font-weight: 500; }
+input[type=range] { width: 100%; height: 6px; background: #ddd; border-radius: 5px; outline: none; }
 
-button#action-btn:active {
-    transform: scale(0.98);
-}
+#theme-toggle, #info-btn { position: fixed; bottom: 25px; width: 50px; height: 50px; border-radius: 50%; border: none; background-color: var(--panel-bg); color: var(--text-color); box-shadow: var(--shadow); font-size: 20px; cursor: pointer; z-index: 1000; transition: opacity 1s ease; }
+#theme-toggle { right: 25px; } #info-btn { left: 25px; font-weight: bold; }
 
-/* --- Slider --- */
-.slider-wrapper {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.slider-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 14px;
-    font-weight: 500;
-}
-
-input[type=range] {
-    width: 100%;
-    height: 6px;
-    background: #ddd;
-    border-radius: 5px;
-    outline: none;
-}
-
-/* --- Floating Toggle Button --- */
-#theme-toggle {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    background-color: var(--panel-bg);
-    color: var(--text-color);
-    box-shadow: var(--shadow);
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* --- Mobile Adjustments --- */
-@media (max-width: 600px) {
-    #word-display { font-size: 48px; }
-    .controls { padding: 20px; }
-    #theme-toggle { bottom: 20px; right: 20px; }
-}
+body.zen-active .controls, body.zen-active .rod-container, body.zen-active #realtime-wpm, body.zen-active #theme-toggle, body.zen-active #info-btn, body.zen-active #global-progress-container, body.zen-active .ghost-word { opacity: 0.05; pointer-events: none; }
+body.zen-active .display-wrapper { border-color: transparent; background-color: transparent; box-shadow: none; transform: scale(1.1); }
+.modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); }
+.modal-content { background-color: var(--panel-bg); color: var(--text-color); margin: 5% auto; padding: 30px; border-radius: 12px; width: 85%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+.close-modal { position: absolute; top: 15px; right: 20px; color: #888; font-size: 28px; cursor: pointer; }
+@media (max-width: 600px) { #word-display { font-size: 40px; } .controls { padding: 20px; } #ghost-left, #ghost-right { display: none; } }
